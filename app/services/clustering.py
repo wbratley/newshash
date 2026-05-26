@@ -56,6 +56,6 @@ def cluster_stories(stories: list[RawStory]) -> list[list[RawStory]]:
         clusters.append(component)
 
     # Sort clusters by size (largest first) so top stories appear first
-    clusters.sort(key=lambda c: len(c), reverse=True)
+    clusters.sort(key=lambda c: (len({s["outlet"] for s in c}), len(c)), reverse=True)
     logger.info("Produced %d clusters from %d stories", len(clusters), n)
     return clusters
