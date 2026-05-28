@@ -78,12 +78,19 @@
 {% endblock %}
 
 {% block content %}
+  {% if is_archive %}
+  <div class="archive-banner">
+    <span>Viewing archive: {{ viewing_date }}</span>
+    <a href="/">Back to today</a>
+  </div>
+  {% endif %}
   <p class="page-title">{{ data.cluster_count }} stories · {{ data.generated_at[:10] }}</p>
   <div class="story-grid">
     {% for cluster in data.clusters %}
     {% set outlet_count = cluster.outlets | length %}
     {% set article_count = cluster.outlets | map(attribute='articles') | map('length') | sum %}
-    <a href="/story/{{ cluster.id }}" style="display:contents;">
+    {% set story_url = "/story/" + cluster.id + ("?archive_date=" + viewing_date if is_archive else "") %}
+    <a href="{{ story_url }}" style="display:contents;">
       <div class="story-card">
         <div>
           <div class="story-headline">{{ cluster.neutral_headline }}</div>

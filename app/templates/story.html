@@ -127,7 +127,13 @@
     <p>Story not found. <a href="/">Back to all stories</a>.</p>
   </div>
 {% else %}
-  <a class="back-link" href="/">← All stories</a>
+  {% if is_archive %}
+  <div class="archive-banner">
+    <span>Viewing archive: {{ viewing_date }}</span>
+    <a href="/">Back to today</a>
+  </div>
+  {% endif %}
+  <a class="back-link" href="{{ '/?archive_date=' + viewing_date if is_archive else '/' }}">← All stories</a>
 
   <h1 class="story-headline">{{ cluster.neutral_headline }}</h1>
 

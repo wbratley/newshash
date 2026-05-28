@@ -1,8 +1,11 @@
 import json
 import logging
 import os
+import re
 from datetime import date, datetime, timezone
 from pathlib import Path
+
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +65,43 @@ def load_today(key: str) -> dict | None:
     except Exception as exc:
         logger.warning("Cache read failed (%s): %s", key, exc)
         return None
+
+
+def load_date(key: str, date_str: str) -> dict | None:
+    """Load cache for a specific date (YYYY-MM-DD). Rejects anything that isn't a valid date string."""
+    if not _DATE_RE.match(date_str):
+        logger.warning("Rejected invalid date_str: %r", date_str)
+        return None
+    try:
+        if _CACHE_BACKEND == "dynamo":
+            table = _dynamo().Table(_table_name())
+            resp = table.get_item(Key={"pk": f"{date_str}_{key}"})
+            item = resp.get("Item")
+            return json.loads(item["data"]) if item else None
+        candidate = (_CACHE_DIR / f"{date_str}_{key}.json").resolve()
+        if not candidate.is_relative_to(_CACHE_DIR.resolve()):
+            logger.warning("Path traversal attempt blocked for date_str: %r", date_str)
+            return None
+        return json.loads(candidate.read_text()) if candidate.exists() else None
+    except Exception as exc:
+        logger.warning("Cache read failed (%s/%s): %s", date_str, key, exc)
+        return None
+
+
+def list_cached_dates(key: str) -> list[str]:
+    """Return all dates with cached data for the given key, newest first."""
+    try:
+        if _CACHE_BACKEND == "dynamo":
+            return [date.today().isoformat()]
+        _CACHE_DIR.mkdir(exist_ok=True)
+        dates = sorted(
+            {p.name.replace(f"_{key}.json", "") for p in _CACHE_DIR.glob(f"*_{key}.json")},
+            reverse=True,
+        )
+        return dates
+    except Exception as exc:
+        logger.warning("list_cached_dates failed: %s", exc)
+        return []
 
 
 def save_today(key: str, data: dict) -> None:
