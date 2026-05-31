@@ -89,7 +89,7 @@
     {% for cluster in data.clusters %}
     {% set outlet_count = cluster.outlets | length %}
     {% set article_count = cluster.outlets | map(attribute='articles') | map('length') | sum %}
-    {% set story_url = "/story/" + cluster.id + ("?archive_date=" + viewing_date if is_archive else "") %}
+    {% set story_url = "/" + viewing_date + "/story/" + cluster.id + "/" if is_archive else "/story/" + cluster.id + "/" %}
     <a href="{{ story_url }}" style="display:contents;">
       <div class="story-card">
         <div>
