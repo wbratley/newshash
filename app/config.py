@@ -9,29 +9,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     anthropic_api_key: str = ""
-    # On Lambda, set this to the Secrets Manager ARN; the key is fetched at startup.
-    anthropic_api_key_secret_arn: str = ""
-    cache_table_name: str = "newshash-cache"
     max_clusters: int = 10
     cluster_similarity_threshold: float = 0.25
     feed_timeout_seconds: int = 10
 
 
-def _resolve_settings() -> Settings:
-    s = Settings()
-    if not s.anthropic_api_key and s.anthropic_api_key_secret_arn:
-        try:
-            import boto3
-            client = boto3.client("secretsmanager")
-            resp = client.get_secret_value(SecretId=s.anthropic_api_key_secret_arn)
-            s = s.model_copy(update={"anthropic_api_key": resp["SecretString"]})
-            logger.info("Loaded API key from Secrets Manager")
-        except Exception as exc:
-            logger.warning("Could not fetch API key from Secrets Manager: %s", exc)
-    return s
-
-
-settings = _resolve_settings()
+settings = Settings()
 
 SOURCES: list[dict] = [
     {

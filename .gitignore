@@ -4,5 +4,4 @@
 __pycache__/
 *.pyc
 cdk.out/
-infra/cdk.out/
 dist/

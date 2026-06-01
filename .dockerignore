@@ -1,9 +1,0 @@
-.venv/
-.env
-.cache/
-.git/
-__pycache__/
-*.pyc
-scripts/
-nginx/
-infra/cdk.out/
