@@ -116,7 +116,7 @@ async def synthesise_cluster(cluster_id: str, stories: list[RawStory]) -> Cluste
     try:
         response = await get_client().messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1500,
+            max_tokens=3000,
             messages=[{"role": "user", "content": _build_prompt(stories)}],
         )
         raw = response.content[0].text.strip()
