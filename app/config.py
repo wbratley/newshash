@@ -33,9 +33,9 @@ SOURCES: list[dict] = [
         "feed_url": "https://www.independent.co.uk/news/uk/rss",
     },
     {
-        "outlet": "Reuters UK",
+        "outlet": "Sky News",
         "lean": "centre",
-        "feed_url": "https://feeds.reuters.com/reuters/UKNews",
+        "feed_url": "https://feeds.skynews.com/feeds/rss/uk.xml",
     },
     {
         "outlet": "i Paper",
@@ -43,9 +43,9 @@ SOURCES: list[dict] = [
         "feed_url": "https://inews.co.uk/feed",
     },
     {
-        "outlet": "The Times",
+        "outlet": "City AM",
         "lean": "centre-right",
-        "feed_url": "https://www.thetimes.co.uk/feed/uk-news/",
+        "feed_url": "https://www.cityam.com/feed/",
     },
     {
         "outlet": "The Telegraph",
@@ -63,8 +63,8 @@ SOURCES: list[dict] = [
         "feed_url": "https://www.express.co.uk/posts/rss/1/news",
     },
     {
-        "outlet": "The Spectator",
+        "outlet": "The Sun",
         "lean": "right",
-        "feed_url": "https://www.spectator.co.uk/feed",
+        "feed_url": "https://www.thesun.co.uk/feed/",
     },
 ]
