@@ -67,4 +67,9 @@ SOURCES: list[dict] = [
         "lean": "right",
         "feed_url": "https://www.thesun.co.uk/feed/",
     },
+    {
+        "outlet": "GB News",
+        "lean": "right",
+        "feed_url": "https://www.gbnews.com/feeds/news.rss",
+    },
 ]
