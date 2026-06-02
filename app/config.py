@@ -18,9 +18,19 @@ settings = Settings()
 
 SOURCES: list[dict] = [
     {
+        "outlet": "Morning Star",
+        "lean": "left",
+        "feed_url": "https://morningstaronline.co.uk/rss.xml",
+    },
+    {
         "outlet": "The Guardian",
         "lean": "left",
         "feed_url": "https://www.theguardian.com/uk/rss",
+    },
+    {
+        "outlet": "The Mirror",
+        "lean": "centre-left",
+        "feed_url": "https://www.mirror.co.uk/rss.xml",
     },
     {
         "outlet": "BBC News",
@@ -56,11 +66,6 @@ SOURCES: list[dict] = [
         "outlet": "Daily Mail",
         "lean": "right",
         "feed_url": "https://www.dailymail.co.uk/articles.rss",
-    },
-    {
-        "outlet": "Daily Express",
-        "lean": "right",
-        "feed_url": "https://www.express.co.uk/posts/rss/1/news",
     },
     {
         "outlet": "The Sun",
