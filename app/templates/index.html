@@ -1,6 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Newshash — Today's News{% endblock %}
+{% block title %}Newshash — Today's UK News Analysis{% endblock %}
+
+{% block seo %}
+<meta name="description" content="UK news stories clustered by topic, with AI-generated unbiased summaries and political bias analysis across 12 outlets.">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Newshash">
+<meta property="og:title" content="Newshash — Today's UK News Analysis">
+<meta property="og:description" content="UK news stories clustered by topic, with AI-generated unbiased summaries and political bias analysis across 12 outlets.">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Newshash — Today's UK News Analysis">
+<meta name="twitter:description" content="UK news stories clustered by topic, with AI-generated unbiased summaries and political bias analysis across 12 outlets.">
+{% endblock %}
 
 {% block head %}
 <style>
