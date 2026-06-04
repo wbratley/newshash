@@ -2,6 +2,45 @@
 
 {% block title %}{{ cluster.neutral_headline }} — Newshash{% endblock %}
 
+{% block seo %}
+{% if cluster %}
+<meta name="description" content="{{ cluster.unbiased_summary[:200] }}">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Newshash">
+<meta property="og:title" content="{{ cluster.neutral_headline }} — Newshash">
+<meta property="og:description" content="{{ cluster.unbiased_summary[:200] }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ cluster.neutral_headline }} — Newshash">
+<meta name="twitter:description" content="{{ cluster.unbiased_summary[:200] }}">
+{% endif %}
+{% endblock %}
+
+{% block structured_data %}
+{% if cluster %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsArticle",
+  "headline": {{ cluster.neutral_headline | tojson }},
+  "description": {{ cluster.unbiased_summary | tojson }},
+  "datePublished": {{ generated_at | tojson }},
+  "url": {{ canonical_url | tojson }},
+  "publisher": {
+    "@type": "Organization",
+    "name": "Newshash",
+    "url": {{ site_url | tojson }}
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "Newshash"
+  }
+}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block head %}
 <style>
   .back-link {

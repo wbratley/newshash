@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Newshash{% endblock %}</title>
+  {% block seo %}
+  <meta name="description" content="UK news stories clustered by topic, with AI-generated unbiased summaries and political bias analysis across 12 outlets.">
+  {% endblock %}
+  {% block structured_data %}{% endblock %}
   <!-- Apply stored theme before first paint to avoid flash -->
   <script>
     (function () {
