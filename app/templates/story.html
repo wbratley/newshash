@@ -203,7 +203,12 @@
     <div class="articles-list">
       {% for article in outlet.articles %}
       <div class="article-link">
-        <a href="{{ article.url }}" target="_blank" rel="noopener">{{ article.headline }}</a>
+        {% if article.article_id %}
+          {% set art_url = "/" + viewing_date + "/story/" + cluster.id + "/article/" + article.article_id + "/" if is_archive else "/story/" + cluster.id + "/article/" + article.article_id + "/" %}
+          <a href="{{ art_url }}">{{ article.headline }}</a>
+        {% else %}
+          <a href="{{ article.url }}" target="_blank" rel="noopener">{{ article.headline }}</a>
+        {% endif %}
       </div>
       {% endfor %}
     </div>

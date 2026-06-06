@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.headline }} — {{ outlet.outlet }} — Newshash{% endblock %}
+
+{% block seo %}
+<meta name="description" content="{{ article.summary[:200] if article.summary else article.headline }}">
+<link rel="canonical" href="{{ canonical_url }}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Newshash">
+<meta property="og:title" content="{{ article.headline }}">
+<meta property="og:description" content="{{ article.summary[:200] if article.summary else article.headline }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ article.headline }}">
+<meta name="twitter:description" content="{{ article.summary[:200] if article.summary else article.headline }}">
+{% endblock %}
+
+{% block head %}
+<style>
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+  .back-link:hover { color: var(--text); text-decoration: none; }
+
+  .article-outlet {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .outlet-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .article-headline {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-card {
+    background: var(--summary-bg);
+    border: 1px solid var(--summary-border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .summary-card .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--summary-label);
+    margin-bottom: 0.5rem;
+  }
+  .summary-card p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--summary-text);
+  }
+  .no-summary {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .read-full {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.65em 1.2em;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: opacity 0.1s;
+  }
+  .read-full:hover { opacity: 0.8; text-decoration: none; }
+
+  .story-context {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .story-context a { color: var(--muted); text-decoration: underline; }
+  .story-context a:hover { color: var(--text); }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if is_archive %}
+<div class="archive-banner">
+  <span>Viewing archive: {{ viewing_date }}</span>
+  <a href="/">Back to today</a>
+</div>
+{% endif %}
+
+{% set story_url = "/" + viewing_date + "/story/" + cluster.id + "/" if is_archive else "/story/" + cluster.id + "/" %}
+<a class="back-link" href="{{ story_url }}">← {{ cluster.neutral_headline }}</a>
+
+<div class="article-outlet lean-{{ outlet.lean }}">
+  <span class="outlet-name">{{ outlet.outlet }}</span>
+  <span class="lean-badge lean-{{ outlet.lean }}">{{ outlet.lean }}</span>
+</div>
+
+<h1 class="article-headline">{{ article.headline }}</h1>
+
+<div class="summary-card">
+  <div class="label">From the feed</div>
+  {% if article.summary %}
+  <p>{{ article.summary }}</p>
+  {% else %}
+  <p class="no-summary">No preview text available for this article.</p>
+  {% endif %}
+</div>
+
+<a class="read-full" href="{{ article.url }}" target="_blank" rel="noopener">
+  Read full article at {{ outlet.outlet }} →
+</a>
+
+<div class="story-context">
+  Part of: <a href="{{ story_url }}">{{ cluster.neutral_headline }}</a>
+</div>
+{% endblock %}
