@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import re
@@ -14,6 +15,10 @@ logger = logging.getLogger(__name__)
 _client: AsyncAnthropic | None = None
 
 LEAN_ORDER = ["left", "centre-left", "centre", "centre-right", "right"]
+
+
+def _article_id(url: str) -> str:
+    return hashlib.sha256(url.encode()).hexdigest()[:8]
 
 
 def _normalize_name(name: str) -> str:
@@ -86,7 +91,8 @@ def _fallback_cluster(cluster_id: str, stories: list[RawStory]) -> Cluster:
             bias_notes="Synthesis unavailable.",
             articles=[
                 Source(outlet=s["outlet"], lean=s["lean"], headline=s["title"],
-                       url=s["url"], published=s["published"])
+                       url=s["url"], published=s["published"],
+                       summary=s.get("summary", ""), article_id=_article_id(s["url"]))
                 for s in outlet_stories
             ],
         ))
@@ -104,7 +110,8 @@ async def synthesise_cluster(cluster_id: str, stories: list[RawStory]) -> Cluste
     sources_by_outlet: dict[str, list[Source]] = {
         outlet: [
             Source(outlet=s["outlet"], lean=s["lean"], headline=s["title"],
-                   url=s["url"], published=s["published"])
+                   url=s["url"], published=s["published"],
+                   summary=s.get("summary", ""), article_id=_article_id(s["url"]))
             for s in outlet_stories
         ]
         for outlet, outlet_stories in grouped.items()

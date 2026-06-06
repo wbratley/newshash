@@ -67,6 +67,7 @@ def _render_date(
     )
 
     story_tmpl = env.get_template("story.html")
+    article_tmpl = env.get_template("article.html")
     for cluster in data["clusters"]:
         story_canonical = (
             f"{base}/{viewing_date}/story/{cluster['id']}/"
@@ -80,6 +81,24 @@ def _render_date(
                 cluster=cluster,
             ),
         )
+        for outlet_analysis in cluster["outlets"]:
+            for article in outlet_analysis["articles"]:
+                if not article.get("article_id"):
+                    continue
+                article_canonical = (
+                    f"{base}/{viewing_date}/story/{cluster['id']}/article/{article['article_id']}/"
+                    if is_archive
+                    else f"{base}/story/{cluster['id']}/article/{article['article_id']}/"
+                )
+                _write(
+                    out_dir / "story" / cluster["id"] / "article" / article["article_id"] / "index.html",
+                    article_tmpl.render(
+                        **_context(data, available_dates, viewing_date, canonical_url=article_canonical),
+                        cluster=cluster,
+                        outlet=outlet_analysis,
+                        article=article,
+                    ),
+                )
 
 
 def _generate_sitemap(data: dict, available_dates: list[str]) -> str:

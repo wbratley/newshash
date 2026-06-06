@@ -8,6 +8,8 @@ class Source(BaseModel):
     headline: str
     url: str
     published: str | None = None
+    summary: str = ""
+    article_id: str = ""
 
 
 class OutletAnalysis(BaseModel):
