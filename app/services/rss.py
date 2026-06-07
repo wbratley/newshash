@@ -34,6 +34,7 @@ async def _fetch_feed(client: httpx.AsyncClient, source: dict) -> list[RawStory]
             title = entry.get("title", "").strip()
             if not title:
                 continue
+            feed_body = _content_encoded(entry)
             stories.append(
                 RawStory(
                     outlet=source["outlet"],
@@ -42,7 +43,7 @@ async def _fetch_feed(client: httpx.AsyncClient, source: dict) -> list[RawStory]
                     summary=_clean_summary(entry.get("summary", "")),
                     url=entry.get("link", ""),
                     published=entry.get("published", None),
-                    body="",
+                    body=feed_body,
                 )
             )
         logger.info("Fetched %d stories from %s", len(stories), source["outlet"])
@@ -56,6 +57,18 @@ def _clean_summary(raw: str) -> str:
     """Strip HTML tags from feed summaries."""
     import re
     return re.sub(r"<[^>]+>", "", raw).strip()
+
+
+def _content_encoded(entry) -> str:
+    """Extract full article text from <content:encoded> if substantially longer than a snippet."""
+    import re
+    for content in entry.get("content", []):
+        val = content.get("value", "")
+        if val:
+            text = re.sub(r"<[^>]+>", "", val).strip()
+            if len(text) >= 500:
+                return text
+    return ""
 
 
 async def fetch_all_feeds() -> list[RawStory]:

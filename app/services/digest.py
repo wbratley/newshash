@@ -31,16 +31,26 @@ async def get_or_generate() -> dict:
         stories = await fetch_all_feeds()
         clusters = cluster_stories(stories)[: settings.max_clusters]
 
-        # Scrape full article text for every article that made it into a cluster
+        # Fetch full article text for clustered articles.
+        # Some outlets include full text in <content:encoded> — those already have body set.
+        # Only scrape the remainder.
         cluster_stories_flat = [s for cluster in clusters for s in cluster]
-        unique_urls = list({s["url"] for s in cluster_stories_flat if s["url"]})
-        logger.info("Scraping %d article URLs", len(unique_urls))
-        bodies = await fetch_article_bodies(unique_urls)
+        from_feed = sum(1 for s in cluster_stories_flat if len(s["body"]) >= 200)
+        to_scrape = list({s["url"] for s in cluster_stories_flat if s["url"] and len(s["body"]) < 200})
+        logger.info(
+            "%d articles have full text from feed; scraping %d more",
+            from_feed, len(to_scrape),
+        )
+        bodies = await fetch_article_bodies(to_scrape)
         for s in cluster_stories_flat:
-            s["body"] = bodies.get(s["url"], "")
+            if len(s["body"]) < 200:
+                s["body"] = bodies.get(s["url"], "")
 
-        scraped = sum(1 for b in bodies.values() if len(b) >= 200)
-        logger.info("Got usable body text for %d / %d articles", scraped, len(unique_urls))
+        total_usable = sum(1 for s in cluster_stories_flat if len(s["body"]) >= 200)
+        logger.info(
+            "Usable body text: %d / %d articles",
+            total_usable, len(cluster_stories_flat),
+        )
 
         synthesised = await asyncio.gather(
             *[synthesise_cluster(f"cluster-{i}", cluster) for i, cluster in enumerate(clusters)]
