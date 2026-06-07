@@ -44,11 +44,6 @@ SOURCES: list[dict] = [
         "feed_url": "https://www.independent.co.uk/news/uk/rss",
     },
     {
-        "outlet": "Sky News",
-        "lean": "centre",
-        "feed_url": "https://feeds.skynews.com/feeds/rss/uk.xml",
-    },
-    {
         "outlet": "i Paper",
         "lean": "centre",
         "feed_url": "https://inews.co.uk/feed",
@@ -57,11 +52,6 @@ SOURCES: list[dict] = [
         "outlet": "City AM",
         "lean": "centre-right",
         "feed_url": "https://www.cityam.com/feed/",
-    },
-    {
-        "outlet": "The Telegraph",
-        "lean": "centre-right",
-        "feed_url": "https://www.telegraph.co.uk/rss.xml",
     },
     {
         "outlet": "Daily Mail",
