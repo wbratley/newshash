@@ -10,6 +10,7 @@ class Source(BaseModel):
     published: str | None = None
     summary: str = ""
     article_id: str = ""
+    body: str = ""  # scraped article text; empty if inaccessible
 
 
 class OutletAnalysis(BaseModel):
