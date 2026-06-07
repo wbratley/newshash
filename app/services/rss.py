@@ -17,6 +17,7 @@ class RawStory(TypedDict):
     summary: str
     url: str
     published: str | None
+    body: str  # scraped article text; empty until filled by scraper
 
 
 async def _fetch_feed(client: httpx.AsyncClient, source: dict) -> list[RawStory]:
@@ -41,6 +42,7 @@ async def _fetch_feed(client: httpx.AsyncClient, source: dict) -> list[RawStory]
                     summary=_clean_summary(entry.get("summary", "")),
                     url=entry.get("link", ""),
                     published=entry.get("published", None),
+                    body="",
                 )
             )
         logger.info("Fetched %d stories from %s", len(stories), source["outlet"])

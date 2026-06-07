@@ -50,8 +50,14 @@ def _build_prompt(cluster: list[RawStory]) -> str:
         header = f"[{outlet.upper()} ({lean})]"
         lines = [header]
         for s in stories:
-            snippet = s["summary"][:200] if s["summary"] else "(no summary)"
-            lines.append(f"  • {s['title']} — {snippet}")
+            body = s.get("body", "")
+            if len(body) >= 200:
+                text = body[:2000]
+                lines.append(f"  • {s['title']}\n    {text}")
+            elif s["summary"]:
+                lines.append(f"  • {s['title']} [RSS summary only]\n    {s['summary']}")
+            else:
+                lines.append(f"  • {s['title']} [headline only — full text inaccessible]")
         blocks.append("\n".join(lines))
 
     outlets_block = "\n\n".join(blocks)
@@ -92,7 +98,8 @@ def _fallback_cluster(cluster_id: str, stories: list[RawStory]) -> Cluster:
             articles=[
                 Source(outlet=s["outlet"], lean=s["lean"], headline=s["title"],
                        url=s["url"], published=s["published"],
-                       summary=s.get("summary", ""), article_id=_article_id(s["url"]))
+                       summary=s.get("summary", ""), article_id=_article_id(s["url"]),
+                       body=s.get("body", ""))
                 for s in outlet_stories
             ],
         ))
@@ -111,7 +118,8 @@ async def synthesise_cluster(cluster_id: str, stories: list[RawStory]) -> Cluste
         outlet: [
             Source(outlet=s["outlet"], lean=s["lean"], headline=s["title"],
                    url=s["url"], published=s["published"],
-                   summary=s.get("summary", ""), article_id=_article_id(s["url"]))
+                   summary=s.get("summary", ""), article_id=_article_id(s["url"]),
+                   body=s.get("body", ""))
             for s in outlet_stories
         ]
         for outlet, outlet_stories in grouped.items()

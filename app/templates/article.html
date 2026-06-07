@@ -120,11 +120,15 @@
 <h1 class="article-headline">{{ article.headline }}</h1>
 
 <div class="summary-card">
-  <div class="label">From the feed</div>
-  {% if article.summary %}
+  {% if article.body %}
+  <div class="label">Article text</div>
+  <p>{{ article.body }}</p>
+  {% elif article.summary %}
+  <div class="label">Feed preview</div>
   <p>{{ article.summary }}</p>
   {% else %}
-  <p class="no-summary">No preview text available for this article.</p>
+  <div class="label">No preview available</div>
+  <p class="no-summary">Full text could not be retrieved for this article.</p>
   {% endif %}
 </div>
 
