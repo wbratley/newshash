@@ -120,7 +120,7 @@
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
     header .archive-nav span {
       font-size: 0.75rem;
@@ -134,6 +134,20 @@
     }
     header .archive-nav a:hover { background: #374151; text-decoration: none; color: #fff; }
     header .archive-nav a.active { background: #374151; color: #fff; }
+    header .archive-nav .archive-arrow {
+      background: none;
+      border: 1px solid #374151;
+      color: #9ca3af;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      flex-shrink: 0;
+    }
+    header .archive-nav .archive-arrow:hover:not(:disabled) { background: #374151; color: #fff; }
+    header .archive-nav .archive-arrow:disabled { opacity: 0.3; cursor: default; }
 
     /* Theme toggle */
     .theme-toggle {
@@ -207,12 +221,14 @@
     {% if available_dates and available_dates | length > 1 %}
     <nav class="archive-nav">
       <span>Archive:</span>
+      <button class="archive-arrow" id="archivePrev">&#8249;</button>
       {% for d in available_dates %}
       <a href="{{ '/' if d == today else '/' + d + '/' }}"
          class="{{ 'active' if d == (viewing_date or today) else '' }}">
         {{ d }}
       </a>
       {% endfor %}
+      <button class="archive-arrow" id="archiveNext">&#8250;</button>
     </nav>
     {% endif %}
     <button class="theme-toggle" id="theme-toggle" onclick="cycleTheme()">Auto</button>
@@ -247,6 +263,30 @@
 
     // Set button label on load
     btn.textContent = labels[currentTheme()];
+
+    // Archive nav sliding window
+    (function () {
+      var PAGE = 7;
+      var links = Array.from(document.querySelectorAll('.archive-nav a'));
+      var prev = document.getElementById('archivePrev');
+      var next = document.getElementById('archiveNext');
+      if (!prev || links.length <= PAGE) return;
+
+      var activeIdx = links.findIndex(function (a) { return a.classList.contains('active'); });
+      if (activeIdx < 0) activeIdx = 0;
+      var start = Math.min(Math.max(0, activeIdx - Math.floor(PAGE / 2)), links.length - PAGE);
+
+      function render() {
+        links.forEach(function (a, i) { a.hidden = i < start || i >= start + PAGE; });
+        prev.disabled = start === 0;
+        next.disabled = start + PAGE >= links.length;
+      }
+
+      prev.addEventListener('click', function () { start = Math.max(0, start - 1); render(); });
+      next.addEventListener('click', function () { start = Math.min(links.length - PAGE, start + 1); render(); });
+
+      render();
+    })();
   </script>
 </body>
 </html>
