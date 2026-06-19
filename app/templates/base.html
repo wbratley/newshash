@@ -266,24 +266,42 @@
 
     // Archive nav sliding window
     (function () {
-      var PAGE = 7;
       var links = Array.from(document.querySelectorAll('.archive-nav a'));
       var prev = document.getElementById('archivePrev');
       var next = document.getElementById('archiveNext');
-      if (!prev || links.length <= PAGE) return;
+      if (!prev) return;
 
       var activeIdx = links.findIndex(function (a) { return a.classList.contains('active'); });
       if (activeIdx < 0) activeIdx = 0;
-      var start = Math.min(Math.max(0, activeIdx - Math.floor(PAGE / 2)), links.length - PAGE);
+      var start = 0;
 
-      function render() {
-        links.forEach(function (a, i) { a.hidden = i < start || i >= start + PAGE; });
-        prev.disabled = start === 0;
-        next.disabled = start + PAGE >= links.length;
+      function page() { return window.innerWidth < 600 ? 3 : 7; }
+
+      function clampStart(s, p) {
+        return Math.min(Math.max(0, s), Math.max(0, links.length - p));
       }
 
+      function render() {
+        var p = page();
+        start = clampStart(start, p);
+        links.forEach(function (a, i) { a.hidden = i < start || i >= start + p; });
+        prev.hidden = links.length <= p;
+        next.hidden = links.length <= p;
+        prev.disabled = start === 0;
+        next.disabled = start + p >= links.length;
+      }
+
+      // Centre window on active date initially
+      start = clampStart(activeIdx - Math.floor(page() / 2), page());
+
       prev.addEventListener('click', function () { start = Math.max(0, start - 1); render(); });
-      next.addEventListener('click', function () { start = Math.min(links.length - PAGE, start + 1); render(); });
+      next.addEventListener('click', function () { start = Math.min(links.length - page(), start + 1); render(); });
+
+      var resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(render, 100);
+      });
 
       render();
     })();
