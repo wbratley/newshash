@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 
 from anthropic import AsyncAnthropic
+from openai import AsyncOpenAI
 
 from app.config import settings
 from app.schemas import Cluster, OutletAnalysis, Source
@@ -12,7 +13,8 @@ from app.services.rss import RawStory
 
 logger = logging.getLogger(__name__)
 
-_client: AsyncAnthropic | None = None
+_anthropic_client: AsyncAnthropic | None = None
+_nim_client: AsyncOpenAI | None = None
 
 LEAN_ORDER = ["left", "centre-left", "centre", "centre-right", "right"]
 
@@ -26,11 +28,40 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"\s*\(.*?\)", "", name).strip().lower()
 
 
-def get_client() -> AsyncAnthropic:
-    global _client
-    if _client is None:
-        _client = AsyncAnthropic(api_key=settings.anthropic_api_key)
-    return _client
+def _get_anthropic_client() -> AsyncAnthropic:
+    global _anthropic_client
+    if _anthropic_client is None:
+        _anthropic_client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+    return _anthropic_client
+
+
+def _get_nim_client() -> AsyncOpenAI:
+    global _nim_client
+    if _nim_client is None:
+        _nim_client = AsyncOpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key=settings.nim_api_key,
+        )
+    return _nim_client
+
+
+async def _call_llm(prompt: str) -> str:
+    if settings.llm_provider == "nim":
+        client = _get_nim_client()
+        response = await client.chat.completions.create(
+            model=settings.nim_model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=3000,
+        )
+        return response.choices[0].message.content.strip()
+    else:
+        client = _get_anthropic_client()
+        response = await client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=3000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.content[0].text.strip()
 
 
 def _group_by_outlet(stories: list[RawStory]) -> dict[str, list[RawStory]]:
@@ -129,12 +160,7 @@ async def synthesise_cluster(cluster_id: str, stories: list[RawStory]) -> Cluste
     canonical_outlet = {_normalize_name(o): o for o in grouped.keys()}
 
     try:
-        response = await get_client().messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=3000,
-            messages=[{"role": "user", "content": _build_prompt(stories)}],
-        )
-        raw = response.content[0].text.strip()
+        raw = await _call_llm(_build_prompt(stories))
 
         if raw.startswith("```"):
             raw = raw.split("```")[1]
