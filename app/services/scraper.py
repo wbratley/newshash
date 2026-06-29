@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import threading
 
 import httpx
 import trafilatura
@@ -19,14 +20,18 @@ _HEADERS = {
     "Accept-Language": "en-GB,en;q=0.9",
 }
 
+# lxml (used by trafilatura) is not thread-safe; serialise all extract calls.
+_lxml_lock = threading.Lock()
+
 
 def _extract(html: str) -> str:
-    text = trafilatura.extract(
-        html,
-        include_comments=False,
-        include_tables=False,
-        no_fallback=False,
-    )
+    with _lxml_lock:
+        text = trafilatura.extract(
+            html,
+            include_comments=False,
+            include_tables=False,
+            no_fallback=False,
+        )
     return text or ""
 
 
