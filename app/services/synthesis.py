@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 
 from anthropic import AsyncAnthropic
+from openai import AsyncOpenAI
 
 from app.config import settings
 from app.schemas import Cluster, OutletAnalysis, Source
@@ -12,7 +13,7 @@ from app.services.rss import RawStory
 
 logger = logging.getLogger(__name__)
 
-_client: AsyncAnthropic | None = None
+_client: AsyncAnthropic | AsyncOpenAI | None = None
 
 LEAN_ORDER = ["left", "centre-left", "centre", "centre-right", "right"]
 
@@ -26,11 +27,33 @@ def _normalize_name(name: str) -> str:
     return re.sub(r"\s*\(.*?\)", "", name).strip().lower()
 
 
-def get_client() -> AsyncAnthropic:
+def get_client() -> AsyncAnthropic | AsyncOpenAI:
     global _client
     if _client is None:
-        _client = AsyncAnthropic(api_key=settings.anthropic_api_key)
+        if settings.llm_provider == "nim":
+            _client = AsyncOpenAI(api_key=settings.nim_api_key, base_url=settings.nim_base_url)
+        else:
+            _client = AsyncAnthropic(api_key=settings.anthropic_api_key)
     return _client
+
+
+async def _complete(prompt: str) -> str:
+    """Send prompt to whichever provider is configured and return the raw text response."""
+    client = get_client()
+    if isinstance(client, AsyncOpenAI):
+        response = await client.chat.completions.create(
+            model=settings.nim_model,
+            max_tokens=3000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content.strip()
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=3000,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return response.content[0].text.strip()
 
 
 def _group_by_outlet(stories: list[RawStory]) -> dict[str, list[RawStory]]:
@@ -129,12 +152,7 @@ async def synthesise_cluster(cluster_id: str, stories: list[RawStory]) -> Cluste
     canonical_outlet = {_normalize_name(o): o for o in grouped.keys()}
 
     try:
-        response = await get_client().messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=3000,
-            messages=[{"role": "user", "content": _build_prompt(stories)}],
-        )
-        raw = response.content[0].text.strip()
+        raw = await _complete(_build_prompt(stories))
 
         if raw.startswith("```"):
             raw = raw.split("```")[1]
