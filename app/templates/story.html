@@ -82,6 +82,12 @@
     line-height: 1.7;
     color: var(--summary-text);
   }
+  .model-note {
+    font-size: 0.7rem;
+    color: var(--muted);
+    opacity: 0.7;
+    margin-top: 0.75rem;
+  }
 
   .outlets-heading {
     font-size: 0.7rem;
@@ -179,6 +185,9 @@
   <div class="summary-card">
     <div class="label">Unbiased summary</div>
     <p>{{ cluster.unbiased_summary }}</p>
+    {% if cluster.model %}
+    <p class="model-note">Generated with {{ cluster.model }}</p>
+    {% endif %}
   </div>
 
   <div class="outlets-heading">Coverage by outlet</div>

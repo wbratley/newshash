@@ -111,6 +111,10 @@
             <span class="stat">{{ outlet_count }} outlet{{ 's' if outlet_count != 1 }}</span>
             <span class="divider">·</span>
             <span class="stat">{{ article_count }} article{{ 's' if article_count != 1 }}</span>
+            {% if cluster.model %}
+            <span class="divider">·</span>
+            <span class="stat">{{ cluster.model }}</span>
+            {% endif %}
             <span class="divider">·</span>
             <span class="lean-dots">
               {% for outlet in cluster.outlets %}

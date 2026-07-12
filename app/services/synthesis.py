@@ -17,6 +17,9 @@ _client: AsyncAnthropic | AsyncOpenAI | None = None
 
 LEAN_ORDER = ["left", "centre-left", "centre", "centre-right", "right"]
 
+ANTHROPIC_MODEL = "claude-sonnet-4-6"
+ANTHROPIC_LABEL = "Claude Sonnet 4.6"
+
 
 def _article_id(url: str) -> str:
     return hashlib.sha256(url.encode()).hexdigest()[:8]
@@ -37,6 +40,12 @@ def get_client() -> AsyncAnthropic | AsyncOpenAI:
     return _client
 
 
+def _current_model_label() -> str:
+    if settings.llm_provider == "nim":
+        return f"{settings.nim_model} (NIM)"
+    return ANTHROPIC_LABEL
+
+
 async def _complete(prompt: str) -> str:
     """Send prompt to whichever provider is configured and return the raw text response."""
     client = get_client()
@@ -49,7 +58,7 @@ async def _complete(prompt: str) -> str:
         return response.choices[0].message.content.strip()
 
     response = await client.messages.create(
-        model="claude-sonnet-4-6",
+        model=ANTHROPIC_MODEL,
         max_tokens=3000,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -131,6 +140,7 @@ def _fallback_cluster(cluster_id: str, stories: list[RawStory]) -> Cluster:
         id=cluster_id,
         neutral_headline=stories[0]["title"] if stories else "Unknown story",
         unbiased_summary="Synthesis unavailable.",
+        model=None,
         outlets=outlets,
     )
 
@@ -179,6 +189,7 @@ async def synthesise_cluster(cluster_id: str, stories: list[RawStory]) -> Cluste
             id=cluster_id,
             neutral_headline=data.get("neutral_headline", stories[0]["title"]),
             unbiased_summary=data.get("unbiased_summary", ""),
+            model=_current_model_label(),
             outlets=outlets,
         )
 
