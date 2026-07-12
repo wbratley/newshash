@@ -25,6 +25,7 @@ class Cluster(BaseModel):
     id: str
     neutral_headline: str
     unbiased_summary: str
+    model: str | None = None  # label of the LLM that generated this cluster's bias analysis; None if synthesis fell back
     outlets: list[OutletAnalysis]
 
 
