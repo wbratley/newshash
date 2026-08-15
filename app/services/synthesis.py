@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import json
 import logging
@@ -26,7 +27,8 @@ def _article_id(url: str) -> str:
 
 
 def _normalize_name(name: str) -> str:
-    """Lowercase and strip parenthetical suffixes so Claude's outlet names match our keys."""
+    """Lowercase and strip brackets/parenthetical suffixes so the model's outlet names match our keys."""
+    name = re.sub(r"[\[\]\"']", "", name)
     return re.sub(r"\s*\(.*?\)", "", name).strip().lower()
 
 
@@ -47,22 +49,35 @@ def _current_model_label() -> str:
 
 
 async def _complete(prompt: str) -> str:
-    """Send prompt to whichever provider is configured and return the raw text response."""
-    client = get_client()
-    if isinstance(client, AsyncOpenAI):
-        response = await client.chat.completions.create(
-            model=settings.nim_model,
-            max_tokens=3000,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.choices[0].message.content.strip()
+    """Send prompt to whichever provider is configured, retrying transient errors.
 
-    response = await client.messages.create(
-        model=ANTHROPIC_MODEL,
-        max_tokens=3000,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.content[0].text.strip()
+    NIM rate-limits (429) when many clusters are synthesised concurrently, so
+    back off exponentially before giving up and falling back.
+    """
+    client = get_client()
+    for attempt in range(6):
+        try:
+            if isinstance(client, AsyncOpenAI):
+                response = await client.chat.completions.create(
+                    model=settings.nim_model,
+                    max_tokens=6000,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return response.choices[0].message.content.strip()
+
+            response = await client.messages.create(
+                model=ANTHROPIC_MODEL,
+                max_tokens=6000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text.strip()
+        except Exception as exc:
+            status = getattr(exc, "status_code", None)
+            if status not in {429, 500, 502, 503, 504} or attempt == 5:
+                raise
+            wait = 2 ** attempt
+            logger.info("LLM call failed (%s), retrying in %ss", status, wait)
+            await asyncio.sleep(wait)
 
 
 def _group_by_outlet(stories: list[RawStory]) -> dict[str, list[RawStory]]:
