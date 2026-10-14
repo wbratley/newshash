@@ -37,14 +37,26 @@ def get_client() -> AsyncAnthropic | AsyncOpenAI:
     if _client is None:
         if settings.llm_provider == "nim":
             _client = AsyncOpenAI(api_key=settings.nim_api_key, base_url=settings.nim_base_url)
+        elif settings.llm_provider == "deepseek":
+            _client = AsyncOpenAI(api_key=settings.deepseek_api_key, base_url=settings.deepseek_base_url)
         else:
             _client = AsyncAnthropic(api_key=settings.anthropic_api_key)
     return _client
 
 
+def _active_model() -> str:
+    if settings.llm_provider == "nim":
+        return settings.nim_model
+    if settings.llm_provider == "deepseek":
+        return settings.deepseek_model
+    return ANTHROPIC_MODEL
+
+
 def _current_model_label() -> str:
     if settings.llm_provider == "nim":
         return f"{settings.nim_model} (NIM)"
+    if settings.llm_provider == "deepseek":
+        return f"{settings.deepseek_model} (DeepSeek)"
     return ANTHROPIC_LABEL
 
 
@@ -58,10 +70,19 @@ async def _complete(prompt: str) -> str:
     for attempt in range(6):
         try:
             if isinstance(client, AsyncOpenAI):
+                # deepseek-flash ships with thinking mode ON by default; that burns
+                # max_tokens on reasoning_content (and timed out NIM's gateway), so
+                # pin it explicitly. NIM's openai-compatible API takes no such param.
+                extra = {}
+                if settings.llm_provider == "deepseek":
+                    extra["extra_body"] = {
+                        "thinking": {"type": "enabled" if settings.deepseek_thinking else "disabled"}
+                    }
                 response = await client.chat.completions.create(
-                    model=settings.nim_model,
+                    model=_active_model(),
                     max_tokens=6000,
                     messages=[{"role": "user", "content": prompt}],
+                    **extra,
                 )
                 return response.choices[0].message.content.strip()
 

@@ -13,7 +13,7 @@ from app.config import settings
 from app.services.rss import RawStory
 from app.services.synthesis import _build_prompt
 
-MODELS = sys.argv[1:] or ["deepseek-ai/deepseek-v4-flash-0731", "openai/gpt-oss-120b", "stepfun-ai/step-3.7-flash"]
+MODELS = sys.argv[1:] or ["deepseek-ai/deepseek-v4.1-flash", "openai/gpt-oss-120b", "stepfun-ai/step-3.7-flash"]
 CACHE = Path(".cache") / f"{__import__('datetime').date.today().isoformat()}_news.json"
 
 
