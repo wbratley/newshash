@@ -9,10 +9,14 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     anthropic_api_key: str = ""
-    llm_provider: str = "anthropic"  # "anthropic" or "nim"
+    llm_provider: str = "anthropic"  # "anthropic", "nim" or "deepseek"
     nim_api_key: str = ""
-    nim_model: str = "meta/llama-3.1-70b-instruct"
+    nim_model: str = "deepseek-ai/deepseek-v4.1-flash"
     nim_base_url: str = "https://integrate.api.nvidia.com/v1"
+    deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-flash"
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_thinking: bool = False
     max_clusters: int = 10
     cluster_similarity_threshold: float = 0.25
     feed_timeout_seconds: int = 10
