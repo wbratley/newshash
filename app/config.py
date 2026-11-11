@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     max_clusters: int = 10
     cluster_similarity_threshold: float = 0.25
     feed_timeout_seconds: int = 10
+    archive_days: int = 30
     site_url: str = "https://newshash.com"
 
 

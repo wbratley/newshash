@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
-"""Generate static HTML files from today's and archived news digests."""
+"""Generate static HTML files from today's and archived news digests.
+
+The dist tree is kept bounded: today's story tree is rebuilt from scratch
+each run (article ids change daily, so stale pages would otherwise
+accumulate), and only the last `archive_days` of dated snapshots are kept.
+The .cache directory retains the full digest history on disk.
+"""
 
 import asyncio
+import re
+import shutil
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
 
@@ -17,6 +25,22 @@ from app.services.digest import get_or_generate
 
 DIST = Path("dist")
 TEMPLATES = Path("app/templates")
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _prune_dist(dist: Path, keep_dates: set[str]) -> None:
+    """Remove content this run will not rewrite.
+
+    Today's story tree is rebuilt from scratch (each day's article ids are
+    new, so yesterday's article pages would accumulate forever), and archive
+    snapshots outside the retention window are dropped.
+    """
+    story_dir = dist / "story"
+    if story_dir.is_dir():
+        shutil.rmtree(story_dir)
+    for entry in dist.iterdir():
+        if entry.is_dir() and _DATE_RE.match(entry.name) and entry.name not in keep_dates:
+            shutil.rmtree(entry)
 
 
 def _env() -> Environment:
@@ -182,7 +206,11 @@ async def main() -> None:
     data = await get_or_generate()
     available_dates = list_cached_dates("news")
     today = date.today().isoformat()
+    cutoff = (date.today() - timedelta(days=settings.archive_days)).isoformat()
+    # Serve only the retention window; .cache keeps the full history.
+    available_dates = [d for d in available_dates if d >= cutoff]
 
+    _prune_dist(DIST, set(available_dates))
     _render_date(env, data, available_dates, DIST)
 
     for d in available_dates:
