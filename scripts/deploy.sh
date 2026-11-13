@@ -10,4 +10,4 @@ python scripts/generate.py
 cd dist
 git add -A
 git commit -m "Daily update $(date -I)" || echo "Nothing to commit"
-git push
+git push origin main
